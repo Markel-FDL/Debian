@@ -1,0 +1,56 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/debian-9"
+#Maquina 1
+  config.vm.define "debian-9p" do | debiandnsp|
+	debiandnsp.vm.box = "bento/debian-9"
+	debiandnsp.vm.network "private_network", ip: "192.168.33.12"
+	debiandnsp.vm.hostname = "debian-9p"
+	
+	#Para crear la conexión rpd
+	config.vm.network :forwarded_port, guest: 3389, host: 33992, id: "rdp", auto_correct: true
+	#Datos de la red
+	debiandnsp.vm.network "private_network",
+      ip: "192.168.1.12",
+      netmask: "255.255.255.0",
+      virtualbox__intnet: "intnet"
+	  
+	   ####PROVISION
+    ##Script para instalar Bind y Apache
+    debiandnsp.vm.provision "shell", path: "./script/instalaciones.sh"
+
+    ## Configurando la zona para el sitio. 
+    debiandnsp.vm.provision "shell", path: "./script/dns-principal.sh"
+
+    ## Añadimos nuestro servidor DNS a /etc/resolv.conf
+    debiandnsp.vm.provision "shell", path: "./script/tcp-dns.sh"
+  end
+	  
+#Maquina 2
+  config.vm.define "debian-9s" do | debiandnss|
+	debiandnss.vm.box = "bento/debian-9"
+	debiandnss.vm.network "private_network", ip: "192.168.33.13"
+	debiandnss.vm.hostname = "debian-9s"
+	
+	#Para crear la conexión rpd
+	config.vm.network :forwarded_port, guest: 3389, host: 33992, id: "rdp", auto_correct: true
+	#Datos de la red
+	debiandnss.vm.network "private_network",
+      ip: "192.168.1.13",
+      netmask: "255.255.255.0",
+      virtualbox__intnet: "intnet"
+	  
+	   ####PROVISION
+    ##Script para instalar Bind
+    debiandnss.vm.provision "shell", path: "./script/instalaciones.sh"
+
+    ## Configurando la zona para el sitio. 
+    debiandnss.vm.provision "shell", path: "./script/dns-second.sh"
+
+    ## Añadimos nuestro servidor DNS a /etc/resolv.conf
+    debiandnss.vm.provision "shell", path: "./script/tcp-dns2.sh"
+	  end
+
+end
+	  
+	  
+	  
